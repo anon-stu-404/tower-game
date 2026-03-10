@@ -1,0 +1,17 @@
+{
+  "name": "tower-stacking-game",
+  "version": "1.0.0",
+  "description": "Real-time multiplayer tower stacking game for Rizwan and Anha",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "p2": "^0.7.1"
+  }
+}

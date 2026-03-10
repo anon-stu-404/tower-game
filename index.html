@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tower Stack · Rizwan & Anha</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --accent1: #7c6fef;
+    --accent2: #ee6fae;
+    --text: #e8e6ff;
+    --muted: rgba(232,230,255,0.45);
+    --rizwan: #7c6fef;
+    --anha: #ee6fae;
+    --glow1: rgba(124,111,239,0.25);
+    --glow2: rgba(238,111,174,0.25);
+    --settle: #fbbf24;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+  body{font-family:'Syne',sans-serif;color:var(--text);display:flex;flex-direction:column}
+
+  /* ─── Starfield background ─── */
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate}
+  @keyframes twinkle{from{opacity:0.05}to{opacity:var(--op,0.6)}}
+
+  /* ─── Layout ─── */
+  #app{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;padding:10px;gap:8px}
+
+  /* ─── Header ─── */
+  #header{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:10px 18px;backdrop-filter:blur(20px);
+    gap:12px;flex-shrink:0
+  }
+  #logo{font-size:1.05rem;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
+  #logo span:first-child{color:var(--rizwan)}
+  #logo span:last-child{color:var(--anha)}
+  #logo .vs{color:var(--muted);font-weight:400;margin:0 6px}
+  #round-badge{
+    background:rgba(255,255,255,0.06);border:1px solid var(--border);
+    border-radius:8px;padding:4px 12px;font-family:'DM Mono',monospace;
+    font-size:0.75rem;color:var(--muted);white-space:nowrap
+  }
+  #scores{display:flex;gap:16px;align-items:center;flex-shrink:0}
+  .score-block{text-align:center}
+  .score-name{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0.6}
+  .score-num{font-size:1.6rem;font-weight:800;line-height:1}
+  .score-block.rizwan .score-num{color:var(--rizwan)}
+  .score-block.anha .score-num{color:var(--anha)}
+  #chat-btn{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:7px 14px;cursor:pointer;font-family:'Syne',sans-serif;font-size:0.8rem;
+    color:var(--text);transition:all .2s;white-space:nowrap;flex-shrink:0
+  }
+  #chat-btn:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.15)}
+  #chat-btn.has-new{border-color:var(--accent2);color:var(--accent2)}
+
+  /* ─── Main area ─── */
+  #main{flex:1;display:flex;gap:8px;min-height:0}
+
+  /* ─── Game area ─── */
+  #game-area{
+    flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0
+  }
+
+  /* ─── Turn indicator ─── */
+  #turn-bar{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:8px 18px;backdrop-filter:blur(20px);text-align:center;flex-shrink:0;
+    font-size:0.85rem;position:relative;overflow:hidden;transition:all .3s
+  }
+  #turn-bar::before{
+    content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s;
+    background:linear-gradient(90deg,var(--glow1),var(--glow2))
+  }
+  #turn-bar.rizwan-turn::before{opacity:1;background:linear-gradient(90deg,var(--glow1),transparent)}
+  #turn-bar.anha-turn::before{opacity:1;background:linear-gradient(90deg,transparent,var(--glow2))}
+  #turn-bar.settling::before{opacity:1;background:rgba(251,191,36,0.1)}
+  #turn-label{position:relative;font-weight:700;font-size:0.9rem}
+
+  /* ─── Canvas wrapper ─── */
+  #canvas-wrap{
+    flex:1;position:relative;background:var(--surface);
+    border:1px solid var(--border);border-radius:16px;overflow:hidden;
+    backdrop-filter:blur(20px);min-height:0
+  }
+  #gameCanvas{display:block;width:100%;height:100%}
+
+  /* ─── Controls ─── */
+  #controls{
+    display:flex;gap:8px;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .ctrl-btn{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    color:var(--text);font-family:'Syne',sans-serif;font-weight:700;
+    cursor:pointer;transition:all .2s;padding:10px 20px;font-size:0.9rem;
+    backdrop-filter:blur(20px)
+  }
+  .ctrl-btn:disabled{opacity:0.3;cursor:not-allowed}
+  .ctrl-btn:not(:disabled):hover{background:rgba(255,255,255,0.09);transform:translateY(-1px)}
+  .ctrl-btn:not(:disabled):active{transform:translateY(0)}
+  #btn-rotate-left::before{content:'↺ '}
+  #btn-rotate-right::before{content:'↻ '}
+  #btn-drop{
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    border:none;padding:10px 36px;font-size:1rem;
+    box-shadow:0 4px 24px rgba(124,111,239,0.3)
+  }
+  #btn-drop:not(:disabled):hover{box-shadow:0 6px 30px rgba(124,111,239,0.5);filter:brightness(1.1)}
+  #shape-preview-label{
+    font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);
+    text-align:center;flex-shrink:0;padding:2px 0
+  }
+
+  /* ─── Overlay (match over, waiting) ─── */
+  #overlay{
+    display:none;position:absolute;inset:0;background:rgba(10,10,20,0.82);
+    backdrop-filter:blur(12px);border-radius:16px;
+    flex-direction:column;align-items:center;justify-content:center;
+    gap:20px;z-index:100
+  }
+  #overlay.visible{display:flex}
+  #overlay-title{font-size:2rem;font-weight:800;text-align:center;line-height:1.2}
+  #overlay-sub{font-size:0.95rem;color:var(--muted);text-align:center}
+  #btn-play-again{
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    border:none;border-radius:14px;padding:12px 40px;
+    font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+    color:#fff;cursor:pointer;transition:all .2s;
+    box-shadow:0 4px 24px rgba(124,111,239,0.4)
+  }
+  #btn-play-again:hover{filter:brightness(1.15);transform:translateY(-2px)}
+
+  /* ─── Waiting screen ─── */
+  #waiting{
+    display:none;position:absolute;inset:0;background:rgba(10,10,20,0.7);
+    backdrop-filter:blur(8px);border-radius:16px;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:50
+  }
+  #waiting.visible{display:flex}
+  .spinner{
+    width:40px;height:40px;border:3px solid var(--border);
+    border-top-color:var(--accent1);border-radius:50%;
+    animation:spin 0.9s linear infinite
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #waiting-msg{font-size:0.9rem;color:var(--muted)}
+
+  /* ─── Chat panel ─── */
+  #chat-panel{
+    width:280px;flex-shrink:0;display:none;flex-direction:column;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;backdrop-filter:blur(24px);overflow:hidden
+  }
+  #chat-panel.open{display:flex}
+  #chat-header{
+    padding:12px 16px;border-bottom:1px solid var(--border);
+    font-weight:700;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center
+  }
+  #chat-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:6px}
+  #chat-close:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+  #chat-messages{
+    flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;
+    scrollbar-width:thin;scrollbar-color:var(--border) transparent;min-height:0
+  }
+  .chat-msg{font-size:0.78rem;line-height:1.4}
+  .chat-msg .sender{font-weight:700;margin-right:5px}
+  .chat-msg .sender.rizwan{color:var(--rizwan)}
+  .chat-msg .sender.anha{color:var(--anha)}
+  .chat-msg .time{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-left:4px}
+  #chat-form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--border)}
+  #chat-input{
+    flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);
+    border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;
+    font-size:0.78rem;outline:none
+  }
+  #chat-input:focus{border-color:rgba(124,111,239,0.5)}
+  #chat-send{
+    background:var(--accent1);border:none;border-radius:8px;padding:7px 13px;
+    color:#fff;cursor:pointer;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;
+    transition:filter .2s
+  }
+  #chat-send:hover{filter:brightness(1.2)}
+
+  /* ─── Toast ─── */
+  #toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+    background:rgba(30,30,50,0.95);border:1px solid var(--border);border-radius:12px;
+    padding:10px 22px;font-size:0.82rem;color:var(--text);backdrop-filter:blur(20px);
+    transition:transform .35s cubic-bezier(.175,.885,.32,1.275);z-index:999;pointer-events:none
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* ─── Rejected screen ─── */
+  #rejected{
+    display:none;position:fixed;inset:0;background:var(--bg);z-index:999;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px
+  }
+  #rejected.visible{display:flex}
+  #rejected-icon{font-size:4rem}
+  #rejected-msg{font-size:1.1rem;color:var(--muted);text-align:center;max-width:320px;line-height:1.5}
+
+  @media(max-width:600px){
+    #chat-panel{position:fixed;bottom:0;right:0;top:0;width:100%;border-radius:0;z-index:200}
+    #scores{gap:10px}
+    .score-num{font-size:1.3rem}
+    #btn-drop{padding:10px 24px}
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div id="stars"></div>
+
+<!-- Rejected screen -->
+<div id="rejected">
+  <div id="rejected-icon">🔒</div>
+  <div id="rejected-msg"></div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <!-- Header -->
+  <div id="header">
+    <div id="logo">
+      <span>Rizwan</span><span class="vs">vs</span><span>Anha</span>
+    </div>
+    <div id="round-badge">Round 1 / 3</div>
+    <div id="scores">
+      <div class="score-block rizwan">
+        <div class="score-name">Rizwan</div>
+        <div class="score-num" id="score-rizwan">0</div>
+      </div>
+      <div style="color:var(--muted);font-size:1rem">·</div>
+      <div class="score-block anha">
+        <div class="score-name">Anha</div>
+        <div class="score-num" id="score-anha">0</div>
+      </div>
+    </div>
+    <button id="chat-btn">💬 Chat</button>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <!-- Game area -->
+    <div id="game-area">
+      <div id="turn-bar"><span id="turn-label">Connecting…</span></div>
+      <div id="shape-preview-label">Current shape: —</div>
+      <div id="canvas-wrap" style="position:relative">
+        <canvas id="gameCanvas"></canvas>
+        <!-- Overlay for match result -->
+        <div id="overlay">
+          <div id="overlay-title"></div>
+          <div id="overlay-sub"></div>
+          <button id="btn-play-again">Play Again</button>
+        </div>
+        <!-- Waiting for opponent -->
+        <div id="waiting">
+          <div class="spinner"></div>
+          <div id="waiting-msg">Waiting for both players…</div>
+        </div>
+      </div>
+      <div id="controls">
+        <button class="ctrl-btn" id="btn-rotate-left">Rotate</button>
+        <button class="ctrl-btn" id="btn-drop">DROP</button>
+        <button class="ctrl-btn" id="btn-rotate-right">Rotate</button>
+      </div>
+    </div>
+
+    <!-- Chat panel -->
+    <div id="chat-panel">
+      <div id="chat-header">
+        <span>💬 Chat</span>
+        <button id="chat-close">✕</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-form">
+        <input id="chat-input" placeholder="Message…" maxlength="200" autocomplete="off"/>
+        <button id="chat-send">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ─── Stars ────────────────────────────────────────────────────────────────────
+(()=>{
+  const container=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=Math.random()*2+0.5;
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${size}px;height:${size}px;
+      --d:${(Math.random()*4+2).toFixed(1)}s;
+      --op:${(Math.random()*0.5+0.1).toFixed(2)};
+      animation-delay:${(Math.random()*4).toFixed(1)}s
+    `;
+    container.appendChild(s);
+  }
+})();
+
+// ─── URL params ───────────────────────────────────────────────────────────────
+const params   = new URLSearchParams(location.search);
+const ROOM     = params.get('room') || 'default';
+const PLAYER   = (params.get('player') || '').toLowerCase().trim();
+
+// ─── Canvas setup ─────────────────────────────────────────────────────────────
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const wrap    = document.getElementById('canvas-wrap');
+
+const SCALE   = 38;   // pixels per metre
+let CANVAS_W  = 0;
+let CANVAS_H  = 0;
+let PLATFORM_CX = 0; // canvas X of world origin (0,0)
+let PLATFORM_CY = 0; // canvas Y of world Y=0 (platform top surface)
+
+function resizeCanvas() {
+  const rect = wrap.getBoundingClientRect();
+  canvas.width  = rect.width  * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width  = rect.width  + 'px';
+  canvas.style.height = rect.height + 'px';
+  CANVAS_W = canvas.width;
+  CANVAS_H = canvas.height;
+  PLATFORM_CX = CANVAS_W / 2;
+  PLATFORM_CY = CANVAS_H * 0.72;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  drawFrame();
+}
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 50);
+
+// world → canvas
+function wx(x){ return PLATFORM_CX/devicePixelRatio + x * SCALE; }
+function wy(y){ return PLATFORM_CY/devicePixelRatio - y * SCALE; }
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let gameState  = null;
+let myName     = PLAYER;
+let connected  = false;
+let playersIn  = [];
+let previewRot = 0; // local rotation for ghost
+
+// ─── Socket ───────────────────────────────────────────────────────────────────
+const socket = io({ query: { room: ROOM, player: PLAYER } });
+
+socket.on('connect', ()=>{
+  socket.emit('join', { room: ROOM, player: PLAYER });
+});
+
+socket.on('rejected', ({ message }) => {
+  document.getElementById('rejected-msg').textContent = message;
+  document.getElementById('rejected').classList.add('visible');
+  document.getElementById('app').style.display = 'none';
+});
+
+socket.on('joined', ({ playerName }) => {
+  myName = playerName;
+  connected = true;
+});
+
+socket.on('playerJoined', ({ name, players }) => {
+  playersIn = players;
+  updateWaiting();
+  showToast(`${capitalize(name)} joined the room`);
+});
+
+socket.on('stateUpdate', state => {
+  gameState = state;
+  previewRot = state.currentShape ? state.currentShape.rotation : 0;
+  updateUI();
+  drawFrame();
+});
+
+socket.on('chat', msg => {
+  appendChatMsg(msg);
+  if (!document.getElementById('chat-panel').classList.contains('open')) {
+    document.getElementById('chat-btn').classList.add('has-new');
+  }
+});
+
+// ─── UI updates ───────────────────────────────────────────────────────────────
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function updateWaiting(){
+  const waiting = document.getElementById('waiting');
+  const bothIn  = playersIn.includes('rizwan') && playersIn.includes('anha');
+  if(bothIn || gameState) waiting.classList.remove('visible');
+  else waiting.classList.add('visible');
+}
+
+function updateUI(){
+  if(!gameState) return;
+  const s = gameState;
+  updateWaiting();
+
+  // Scores
+  document.getElementById('score-rizwan').textContent = s.scores.rizwan;
+  document.getElementById('score-anha').textContent   = s.scores.anha;
+
+  // Round badge
+  document.getElementById('round-badge').textContent = `Round ${s.round+1} / 3`;
+
+  // Turn bar
+  const turnBar   = document.getElementById('turn-bar');
+  const turnLabel = document.getElementById('turn-label');
+  turnBar.className = '';
+  if(s.settling){
+    turnBar.classList.add('settling');
+    turnLabel.innerHTML = `<span style="color:var(--settle)">⏳ Settling physics…</span>`;
+  } else if(s.matchOver){
+    turnLabel.innerHTML = `🏆 Match complete!`;
+  } else if(!s.roundActive){
+    turnLabel.innerHTML = `Round over — next round starting…`;
+  } else {
+    const isMyTurn = s.turn === myName;
+    turnBar.classList.add(s.turn+'-turn');
+    const nameHtml = `<span style="color:var(--${s.turn})">${capitalize(s.turn)}</span>`;
+    turnLabel.innerHTML = isMyTurn ? `✨ Your turn, ${nameHtml}!` : `${nameHtml}'s turn…`;
+  }
+
+  // Shape label
+  const shapeLbl = document.getElementById('shape-preview-label');
+  if(s.currentShape && s.roundActive && !s.matchOver){
+    shapeLbl.textContent = `Shape: ${s.currentShape.shapeName}  ·  Rotation: ${(previewRot*180/Math.PI).toFixed(0)}°`;
+  } else {
+    shapeLbl.textContent = '';
+  }
+
+  // Controls
+  const isMyTurn  = s.turn === myName;
+  const canAct    = isMyTurn && !s.settling && !s.matchOver && s.roundActive;
+  document.getElementById('btn-rotate-left').disabled  = !canAct;
+  document.getElementById('btn-rotate-right').disabled = !canAct;
+  document.getElementById('btn-drop').disabled         = !canAct;
+
+  // Match overlay
+  const overlay = document.getElementById('overlay');
+  if(s.matchOver && s.winner){
+    const isWinner = s.winner === myName;
+    const wName    = capitalize(s.winner);
+    document.getElementById('overlay-title').innerHTML =
+      `🏆 <span style="color:var(--${s.winner})">${wName}</span> wins the match!`;
+    document.getElementById('overlay-sub').textContent =
+      isWinner ? 'Congratulations! 🎉' : 'Better luck next time!';
+    overlay.classList.add('visible');
+  } else {
+    overlay.classList.remove('visible');
+  }
+}
+
+// ─── Drawing ──────────────────────────────────────────────────────────────────
+const SHAPE_DEFS = {
+  square:    { vertices:[[-0.5,-0.5],[0.5,-0.5],[0.5,0.5],[-0.5,0.5]], color:'#6ee7f7' },
+  rectangle: { vertices:[[-0.8,-0.35],[0.8,-0.35],[0.8,0.35],[-0.8,0.35]], color:'#a78bfa' },
+  triangle:  { vertices:[[0,-0.6],[0.55,0.5],[-0.55,0.5]], color:'#fbbf24' },
+  trapezoid: { vertices:[[-0.9,-0.35],[0.9,-0.35],[0.55,0.35],[-0.55,0.35]], color:'#34d399' },
+  hexagon: { vertices:(()=>{const p=[];for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;p.push([Math.cos(a)*0.6,Math.sin(a)*0.6])}return p})(), color:'#f472b6' },
+  lshape:    { vertices:[[-0.6,-0.6],[0.6,-0.6],[0.6,0.0],[0.1,0.0],[0.1,0.6],[-0.6,0.6]], color:'#fb923c' },
+  irregular: { vertices:[[-0.7,-0.4],[0.3,-0.6],[0.7,0.1],[0.2,0.6],[-0.5,0.5]], color:'#e879f9' }
+};
+
+function rotateVert(v, angle){
+  const cos=Math.cos(angle), sin=Math.sin(angle);
+  return [v[0]*cos - v[1]*sin, v[0]*sin + v[1]*cos];
+}
+
+function drawPolygon(verts, fillStyle, strokeStyle, alpha=1){
+  if(!verts || verts.length < 2) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.moveTo(verts[0][0], verts[0][1]);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i][0], verts[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+  if(strokeStyle){
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function worldVertsToCanvas(localVerts, pos, angle){
+  return localVerts.map(v => {
+    const r = rotateVert(v, angle);
+    return [wx(pos[0] + r[0]), wy(pos[1] + r[1])];
+  });
+}
+
+function drawFrame(){
+  const W = canvas.width/devicePixelRatio;
+  const H = canvas.height/devicePixelRatio;
+  ctx.clearRect(0,0,W,H);
+
+  if(!gameState) return;
+  const s = gameState;
+
+  // ── Platform ──
+  const pw   = s.platformWidth;
+  const ph   = 0.3;
+  const px   = wx(-pw/2);
+  const py   = wy(-ph/2);  // world y=0 is platform top; body y = -ph/2
+  const pwPx = pw * SCALE;
+  const phPx = ph * SCALE;
+
+  // Platform glow
+  const grad = ctx.createLinearGradient(px, py, px+pwPx, py+phPx);
+  grad.addColorStop(0,'rgba(124,111,239,0.25)');
+  grad.addColorStop(1,'rgba(238,111,174,0.25)');
+  ctx.save();
+  ctx.shadowColor = 'rgba(124,111,239,0.5)';
+  ctx.shadowBlur  = 20;
+  ctx.fillStyle   = grad;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.roundRect(px, py, pwPx, phPx, 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // ── Stacked bodies ──
+  s.bodies.forEach(b => {
+    const def    = SHAPE_DEFS[b.shapeName] || SHAPE_DEFS.square;
+    const verts  = b.vertices || def.vertices;
+    const cverts = worldVertsToCanvas(verts, b.position, b.angle);
+    const color  = b.color || def.color;
+
+    // Shadow / glow
+    ctx.save();
+    ctx.shadowColor = color+'88';
+    ctx.shadowBlur  = 12;
+    drawPolygon(cverts, color, 'rgba(255,255,255,0.2)');
+    ctx.restore();
+  });
+
+  // ── Ghost preview ──
+  if(s.currentShape && s.turn===myName && !s.settling && !s.matchOver && s.roundActive){
+    const def   = SHAPE_DEFS[s.currentShape.shapeName] || SHAPE_DEFS.square;
+    const verts = def.vertices;
+    const ghostY = 6.5; // world y for preview
+    const ghostX = 0;
+    const cverts = worldVertsToCanvas(verts, [ghostX, ghostY], previewRot);
+    drawPolygon(cverts, def.color+'66', def.color+'aa', 0.6);
+
+    // Arrow hinting drop
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = def.color;
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([4,4]);
+    const gx = wx(ghostX);
+    const gy = wy(ghostY);
+    ctx.beginPath();
+    ctx.moveTo(gx, gy + 30);
+    ctx.lineTo(gx, wy(0) - 15);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Danger line ──
+  const dangerY = wy(-5);
+  if(dangerY < H){
+    ctx.save();
+    ctx.globalAlpha=0.15;
+    ctx.strokeStyle='#ef4444';
+    ctx.lineWidth=1;
+    ctx.setLineDash([6,6]);
+    ctx.beginPath();
+    ctx.moveTo(0, dangerY);
+    ctx.lineTo(W, dangerY);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  requestAnimationFrame(drawFrame);
+}
+requestAnimationFrame(drawFrame);
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+document.getElementById('btn-rotate-left').addEventListener('click', ()=>{
+  socket.emit('rotate', { direction:'left' });
+  previewRot -= 0.4;
+});
+document.getElementById('btn-rotate-right').addEventListener('click', ()=>{
+  socket.emit('rotate', { direction:'right' });
+  previewRot += 0.4;
+});
+document.getElementById('btn-drop').addEventListener('click', ()=>{
+  if(!gameState || gameState.settling || gameState.turn!==myName) return;
+  socket.emit('drop');
+});
+document.getElementById('btn-play-again').addEventListener('click', ()=>{
+  socket.emit('playAgain');
+  document.getElementById('overlay').classList.remove('visible');
+});
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+const chatPanel = document.getElementById('chat-panel');
+const chatInput = document.getElementById('chat-input');
+const chatMsgs  = document.getElementById('chat-messages');
+
+document.getElementById('chat-btn').addEventListener('click', ()=>{
+  chatPanel.classList.toggle('open');
+  document.getElementById('chat-btn').classList.remove('has-new');
+});
+document.getElementById('chat-close').addEventListener('click', ()=>{
+  chatPanel.classList.remove('open');
+});
+document.getElementById('chat-send').addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
+
+function sendChat(){
+  const msg = chatInput.value.trim();
+  if(!msg) return;
+  socket.emit('chat', { message: msg });
+  chatInput.value='';
+}
+
+function appendChatMsg(msg){
+  const div = document.createElement('div');
+  div.className='chat-msg';
+  div.innerHTML=`<span class="sender ${msg.sender}">${capitalize(msg.sender)}</span><span class="text">${escapeHtml(msg.text)}</span><span class="time">${msg.time}</span>`;
+  chatMsgs.appendChild(div);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+// ─── Waiting init ─────────────────────────────────────────────────────────────
+document.getElementById('waiting').classList.add('visible');
+document.getElementById('waiting-msg').textContent='Connecting…';
+</script>
+</body>
+</html>
