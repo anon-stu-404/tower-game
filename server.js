@@ -1,410 +1,209 @@
 'use strict';
-
 const express = require('express');
-const http = require('http');
+const http    = require('http');
 const { Server } = require('socket.io');
-const p2 = require('p2');
-const path = require('path');
+const p2      = require('p2');
+const path    = require('path');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: '*' }
-});
-
-const PORT = process.env.PORT || 3000;
+const io     = new Server(server, { cors: { origin: '*' }, pingInterval: 10000, pingTimeout: 5000 });
+const PORT   = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname)));
 
-// ─── Shape Library ────────────────────────────────────────────────────────────
-// All shapes defined as convex polygons with LOCAL vertices (centred at origin)
-// Vertices in counter-clockwise order, units = metres
-
+// ─── SHAPES ──────────────────────────────────────────────────────────────────
 const SHAPES = {
-  square: {
-    name: 'square',
-    vertices: [[-0.5,-0.5],[0.5,-0.5],[0.5,0.5],[-0.5,0.5]],
-    color: '#6ee7f7'
-  },
-  rectangle: {
-    name: 'rectangle',
-    vertices: [[-0.8,-0.35],[0.8,-0.35],[0.8,0.35],[-0.8,0.35]],
-    color: '#a78bfa'
-  },
-  triangle: {
-    name: 'triangle',
-    vertices: [[0,-0.6],[0.55,0.5],[-0.55,0.5]],
-    color: '#fbbf24'
-  },
-  trapezoid: {
-    name: 'trapezoid',
-    vertices: [[-0.9,-0.35],[0.9,-0.35],[0.55,0.35],[-0.55,0.35]],
-    color: '#34d399'
-  },
-  hexagon: {
-    name: 'hexagon',
-    vertices: (()=>{
-      const pts = [];
-      for(let i=0;i<6;i++){
-        const a = Math.PI/6 + i*Math.PI/3;
-        pts.push([Math.cos(a)*0.6, Math.sin(a)*0.6]);
-      }
-      return pts;
-    })(),
-    color: '#f472b6'
-  },
-  lshape: {
-    // L-shape decomposed into a single convex approximation (wider at base)
-    name: 'lshape',
-    vertices: [[-0.6,-0.6],[0.6,-0.6],[0.6,0.0],[0.1,0.0],[0.1,0.6],[-0.6,0.6]],
-    color: '#fb923c',
-    convexParts: [
-      [[-0.6,-0.6],[0.6,-0.6],[0.6,0.0],[-0.6,0.0]],
-      [[-0.6,0.0],[0.1,0.0],[0.1,0.6],[-0.6,0.6]]
-    ]
-  },
-  irregular: {
-    name: 'irregular',
-    vertices: [[-0.7,-0.4],[0.3,-0.6],[0.7,0.1],[0.2,0.6],[-0.5,0.5]],
-    color: '#e879f9'
-  }
+  square:    { v:[[-0.40,-0.40],[0.40,-0.40],[0.40,0.40],[-0.40,0.40]],           c:'#6ee7f7' },
+  rectangle: { v:[[-0.72,-0.24],[0.72,-0.24],[0.72,0.24],[-0.72,0.24]],           c:'#a78bfa' },
+  tallrect:  { v:[[-0.20,-0.70],[0.20,-0.70],[0.20,0.70],[-0.20,0.70]],           c:'#67e8f9' },
+  triangle:  { v:[[0,-0.60],[0.58,0.52],[-0.58,0.52]],                            c:'#fbbf24' },
+  thintri:   { v:[[0,-0.78],[0.22,0.78],[-0.22,0.78]],                            c:'#fde68a' },
+  trapezoid: { v:[[-0.78,-0.26],[0.78,-0.26],[0.42,0.26],[-0.42,0.26]],           c:'#34d399' },
+  hexagon:   { v:(()=>{const p=[];for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;p.push([+(Math.cos(a)*0.50).toFixed(4),+(Math.sin(a)*0.50).toFixed(4)]);}return p;})(), c:'#f472b6' },
+  lshape:    { v:[[-0.52,-0.52],[0.52,-0.52],[0.52,0.0],[0.10,0.0],[0.10,0.52],[-0.52,0.52]], c:'#fb923c',
+               parts:[[[-0.52,-0.52],[0.52,-0.52],[0.52,0.0],[-0.52,0.0]],[[-0.52,0.0],[0.10,0.0],[0.10,0.52],[-0.52,0.52]]] },
+  irregular: { v:[[-0.62,-0.36],[0.26,-0.60],[0.66,0.10],[0.16,0.56],[-0.46,0.48]], c:'#e879f9' },
+  diamond:   { v:[[0,-0.62],[0.42,0],[0,0.62],[-0.42,0]],                         c:'#f9a8d4' },
+  wedge:     { v:[[-0.68,-0.32],[0.68,-0.32],[0.68,0.32],[-0.68,0.04]],           c:'#86efac' },
+  zigzag:    { v:[[-0.60,-0.36],[-0.10,-0.36],[0.10,0.0],[0.60,0.0],[0.60,0.36],[0.10,0.36],[-0.10,0.0],[-0.60,0.0]],
+               parts:[[[-0.60,-0.36],[0.10,-0.36],[0.10,0.0],[-0.60,0.0]],[[−0.10,0.0],[0.60,0.0],[0.60,0.36],[-0.10,0.36]]], c:'#f87171' },
 };
-
-// Round configurations
-const ROUND_CONFIG = [
-  { platformWidth: 6,   shapes: ['square','rectangle','triangle'] },
-  { platformWidth: 4.5, shapes: ['square','rectangle','triangle','trapezoid','hexagon'] },
-  { platformWidth: 3,   shapes: ['square','rectangle','triangle','trapezoid','hexagon','lshape','irregular'] }
+// fix zigzag parts (literal minus sign issue)
+SHAPES.zigzag.parts = [
+  [[-0.60,-0.36],[0.10,-0.36],[0.10,0.0],[-0.60,0.0]],
+  [[-0.10, 0.0 ],[0.60, 0.0 ],[0.60,0.36],[-0.10,0.36]]
 ];
 
-const PLATFORM_HEIGHT = 0.3;
-const PLATFORM_Y     = 0;      // world-space y of platform top surface
-const FALL_THRESHOLD = -6;     // if body centre.y < this, it "fell"
-const DROP_HEIGHT    = 8;      // y above platform where shape spawns
-const PHYSICS_STEP   = 1/60;
-const SETTLE_IDLE_STEPS = 90;  // consecutive steps all bodies near-zero before "settled"
-const VELOCITY_THRESHOLD = 0.05;
-const ANGULAR_THRESHOLD  = 0.05;
+const ROUNDS = [
+  { pw:5.5, pool:['square','rectangle','tallrect','triangle'] },
+  { pw:4.0, pool:['rectangle','tallrect','triangle','thintri','trapezoid','hexagon','wedge'] },
+  { pw:2.8, pool:['thintri','trapezoid','hexagon','lshape','irregular','diamond','wedge','zigzag'] },
+];
 
-// ─── Room Manager ─────────────────────────────────────────────────────────────
-const rooms = {};  // roomId → RoomState
+const PLAT_H=0.3, FALL_Y=-8, DROP_Y=9;
+const STEP=1/60, SETTLE_N=50, VT=0.10, AT=0.10, MAX_STEPS=420;
+const MOVE_D=0.28; // metres per press
 
-function createPhysicsWorld(platformWidth) {
-  const world = new p2.World({ gravity: [0, -9.82] });
-  world.sleepMode = p2.World.BODY_SLEEPING;
+let gBodyId=0;
+const rooms={};
 
-  // Platform body (static)
-  const platformBody = new p2.Body({ mass: 0, position: [0, PLATFORM_Y - PLATFORM_HEIGHT/2] });
-  const platformShape = new p2.Box({ width: platformWidth, height: PLATFORM_HEIGHT });
-  platformShape.material = new p2.Material();
-  platformBody.addShape(platformShape);
-  world.addBody(platformBody);
-
-  // Contact material for decent friction & restitution
-  const dynMat = new p2.Material();
-  const contact = new p2.ContactMaterial(platformShape.material, dynMat, {
-    friction: 0.6,
-    restitution: 0.1
-  });
-  world.addContactMaterial(contact);
-  world._dynMat = dynMat;
-  world._contact = contact;
-
-  return world;
+// ─── WORLD ───────────────────────────────────────────────────────────────────
+function mkWorld(pw){
+  const w=new p2.World({gravity:[0,-14]});
+  w.sleepMode=p2.World.BODY_SLEEPING;
+  w.solver.iterations=7;
+  const pm=new p2.Material(), dm=new p2.Material();
+  const pb=new p2.Body({mass:0,position:[0,-PLAT_H/2]});
+  const ps=new p2.Box({width:pw,height:PLAT_H});
+  ps.material=pm; pb.addShape(ps); w.addBody(pb);
+  w.addContactMaterial(new p2.ContactMaterial(pm,dm,{friction:0.28,restitution:0.22,relaxation:4}));
+  w.addContactMaterial(new p2.ContactMaterial(dm,dm,{friction:0.22,restitution:0.20}));
+  w._dm=dm; return w;
 }
 
-function randomShape(round) {
-  const pool = ROUND_CONFIG[round].shapes;
-  return pool[Math.floor(Math.random() * pool.length)];
+function rndShape(r){ const p=ROUNDS[r].pool; return p[Math.floor(Math.random()*p.length)]; }
+function clampX(x,pw){ const l=pw*0.50; return Math.max(-l,Math.min(l,x)); }
+
+function mkRoom(id){
+  const room={id,players:{},names:new Set(),scores:{rizwan:0,anha:0},round:0,turn:'rizwan',
+    bodies:[],world:null,pbodies:[],settling:false,matchOver:false,winner:null,
+    shape:null,chat:[],active:false};
+  startRound(room); return room;
 }
 
-function createRoom(roomId) {
-  const room = {
-    id: roomId,
-    players: {},          // socketId → playerName
-    playerNames: new Set(),
-    scores: { rizwan: 0, anha: 0 },
-    round: 0,             // 0-indexed
-    turn: 'rizwan',
-    bodies: [],           // serialisable body records
-    world: null,
-    physicsBodies: [],    // p2 body refs parallel to bodies[]
-    settling: false,
-    matchOver: false,
-    winner: null,
-    currentShape: null,   // { shapeName, rotation }
-    chatMessages: [],
-    roundActive: false
-  };
-  initRound(room);
-  return room;
+function startRound(rm){
+  rm.world=mkWorld(ROUNDS[rm.round].pw);
+  rm.bodies=[]; rm.pbodies=[]; rm.settling=false; rm.active=true; rm.matchOver=false;
+  rm.turn=rm.round===0?'rizwan':rm.round===1?'anha':'rizwan';
+  rm.shape={name:rndShape(rm.round),rot:0,x:0};
 }
 
-function initRound(room) {
-  const cfg = ROUND_CONFIG[room.round];
-
-  // Destroy old world
-  room.world = createPhysicsWorld(cfg.platformWidth);
-  room.bodies = [];
-  room.physicsBodies = [];
-  room.settling = false;
-  room.roundActive = true;
-  room.matchOver = false;
-
-  // Decide who starts this round
-  room.turn = room.round === 0 ? 'rizwan' : (room.round === 1 ? 'anha' : 'rizwan');
-  room.currentShape = { shapeName: randomShape(room.round), rotation: 0 };
-}
-
-function serializeState(room) {
-  const cfg = ROUND_CONFIG[room.round];
+function serial(rm){
   return {
-    scores: room.scores,
-    round: room.round,
-    turn: room.turn,
-    settling: room.settling,
-    matchOver: room.matchOver,
-    winner: room.winner,
-    roundActive: room.roundActive,
-    platformWidth: cfg.platformWidth,
-    currentShape: room.currentShape,
-    bodies: room.bodies.map(b => ({
-      id: b.id,
-      shapeName: b.shapeName,
-      vertices: b.vertices,
-      position: [...b.position],
-      angle: b.angle,
-      color: b.color
-    }))
+    scores:rm.scores, round:rm.round, turn:rm.turn, settling:rm.settling,
+    matchOver:rm.matchOver, winner:rm.winner, active:rm.active,
+    pw:ROUNDS[rm.round].pw, shape:{...rm.shape},
+    bodies:rm.bodies.map(b=>({id:b.id,name:b.name,v:b.v,pos:[...b.pos],angle:b.angle,c:b.c}))
   };
 }
 
-// ─── Physics drop & settle ────────────────────────────────────────────────────
-let bodyIdCounter = 0;
+// ─── PHYSICS SETTLE ──────────────────────────────────────────────────────────
+function drop(rm){
+  const sd=SHAPES[rm.shape.name];
+  const jitter=(Math.random()-0.5)*0.10;
+  const x=rm.shape.x+jitter, y=DROP_Y, angle=rm.shape.rot;
 
-function dropShape(room) {
-  const cfg = ROUND_CONFIG[room.round];
-  const shapeDef = SHAPES[room.currentShape.shapeName];
-  const angle    = room.currentShape.rotation;
-  const xOffset  = (Math.random() - 0.5) * (cfg.platformWidth / 1.8);
-  const spawnY   = DROP_HEIGHT;
+  const body=new p2.Body({mass:1,position:[x,y],angle,angularDamping:0.15,damping:0.04});
+  body.sleepSpeedLimit=VT; body.sleepTimeLimit=0.3;
 
-  // Build p2 body
-  const body = new p2.Body({
-    mass: 1,
-    position: [xOffset, spawnY],
-    angle: angle,
-    angularDamping: 0.3,
-    damping: 0.1
-  });
-  body.sleepSpeedLimit = VELOCITY_THRESHOLD;
-  body.sleepTimeLimit  = 0.5;
-
-  let pShape;
-  if (room.currentShape.shapeName === 'lshape') {
-    // Decompose into two convex parts
-    shapeDef.convexParts.forEach(part => {
-      const cs = new p2.Convex({ vertices: part });
-      cs.material = room.world._dynMat;
-      body.addShape(cs);
-    });
-    pShape = body.shapes[0];
+  if(sd.parts){
+    sd.parts.forEach(pts=>{ const s=new p2.Convex({vertices:pts}); s.material=rm.world._dm; body.addShape(s); });
   } else {
-    pShape = new p2.Convex({ vertices: shapeDef.vertices });
-    pShape.material = room.world._dynMat;
-    body.addShape(pShape);
+    const s=new p2.Convex({vertices:sd.v}); s.material=rm.world._dm; body.addShape(s);
   }
-
   body.updateMassProperties();
-  room.world.addBody(body);
-  room.physicsBodies.push(body);
-
-  const bId = ++bodyIdCounter;
-  room.bodies.push({
-    id: bId,
-    shapeName: room.currentShape.shapeName,
-    vertices: shapeDef.vertices,
-    position: [xOffset, spawnY],
-    angle: angle,
-    color: shapeDef.color,
-    _ref: body
-  });
-
-  room.settling = true;
-  simulateUntilSettled(room);
+  rm.world.addBody(body); rm.pbodies.push(body);
+  rm.bodies.push({id:++gBodyId,name:rm.shape.name,v:sd.v,pos:[x,y],angle,c:sd.c});
+  rm.settling=true;
+  settle(rm);
 }
 
-function simulateUntilSettled(room) {
-  let idleSteps = 0;
-  const MAX_STEPS = 600; // hard cap ~10 seconds
-  let stepCount = 0;
-
-  function step() {
-    if (!room.settling) return;
-
-    room.world.step(PHYSICS_STEP);
-    stepCount++;
-
-    // Sync positions back to serialisable records
-    room.bodies.forEach((b, i) => {
-      const pb = room.physicsBodies[i];
-      if (pb) {
-        b.position = [...pb.position];
-        b.angle    = pb.angle;
-      }
-    });
-
-    // Broadcast live positions during settling (rate-limited)
-    if (stepCount % 3 === 0) {
-      io.to(room.id).emit('stateUpdate', serializeState(room));
-    }
-
-    // Check if all bodies are calm
-    const allSleeping = room.physicsBodies.every(pb => {
-      const vx = Math.abs(pb.velocity[0]);
-      const vy = Math.abs(pb.velocity[1]);
-      const av = Math.abs(pb.angularVelocity);
-      return vx < VELOCITY_THRESHOLD && vy < VELOCITY_THRESHOLD && av < ANGULAR_THRESHOLD;
-    });
-
-    if (allSleeping) idleSteps++;
-    else              idleSteps = 0;
-
-    if (idleSteps >= SETTLE_IDLE_STEPS || stepCount >= MAX_STEPS) {
-      onSettled(room);
-      return;
-    }
-
-    setImmediate(step);
+function settle(rm){
+  let idle=0,steps=0;
+  function tick(){
+    if(!rm.settling) return;
+    // 3 sub-steps per tick — faster convergence, still stable
+    rm.world.step(STEP); rm.world.step(STEP); rm.world.step(STEP);
+    steps+=3;
+    rm.bodies.forEach((b,i)=>{ const p=rm.pbodies[i]; if(p){b.pos=[...p.position];b.angle=p.angle;} });
+    // Broadcast every 9 sub-steps
+    if(steps%9===0) io.to(rm.id).emit('S',serial(rm));
+    const calm=rm.pbodies.every(p=>Math.abs(p.velocity[0])<VT&&Math.abs(p.velocity[1])<VT&&Math.abs(p.angularVelocity)<AT);
+    idle=calm?idle+1:0;
+    if(idle>=SETTLE_N||steps>=MAX_STEPS){ done(rm); return; }
+    setImmediate(tick);
   }
-
-  setImmediate(step);
+  setImmediate(tick);
 }
 
-function onSettled(room) {
-  room.settling = false;
-
-  // Check for fallen bodies
-  const fell = room.bodies.some(b => b.position[1] < FALL_THRESHOLD);
-
-  if (fell) {
-    // The current turn player caused the fall → opponent wins the round
-    const loser  = room.turn;
-    const winner = loser === 'rizwan' ? 'anha' : 'rizwan';
-    room.scores[winner]++;
-    room.roundActive = false;
-
-    // Check match winner (best of 3)
-    if (room.scores[winner] >= 2) {
-      room.matchOver = true;
-      room.winner    = winner;
-    } else {
-      // Advance round
-      room.round = (room.round + 1) % 3;
-      // Delay so clients can show "round over" for a moment
-      setTimeout(() => {
-        initRound(room);
-        room.turn = winner === 'rizwan' ? 'anha' : 'rizwan'; // loser starts next
-        room.currentShape = { shapeName: randomShape(room.round), rotation: 0 };
-        io.to(room.id).emit('stateUpdate', serializeState(room));
-      }, 3000);
+function done(rm){
+  rm.settling=false;
+  const fell=rm.bodies.some(b=>b.pos[1]<FALL_Y);
+  if(fell){
+    const loser=rm.turn, winner=loser==='rizwan'?'anha':'rizwan';
+    rm.scores[winner]++; rm.active=false;
+    if(rm.scores[winner]>=2){ rm.matchOver=true; rm.winner=winner; io.to(rm.id).emit('S',serial(rm)); }
+    else {
+      io.to(rm.id).emit('S',serial(rm));
+      rm.round=(rm.round+1)%3;
+      setTimeout(()=>{ startRound(rm); rm.turn=winner==='rizwan'?'anha':'rizwan'; rm.shape={name:rndShape(rm.round),rot:0,x:0}; io.to(rm.id).emit('S',serial(rm)); },3000);
     }
   } else {
-    // Switch turns
-    room.turn = room.turn === 'rizwan' ? 'anha' : 'rizwan';
-    room.currentShape = { shapeName: randomShape(room.round), rotation: 0 };
+    rm.turn=rm.turn==='rizwan'?'anha':'rizwan';
+    rm.shape={name:rndShape(rm.round),rot:0,x:0};
+    io.to(rm.id).emit('S',serial(rm));
   }
-
-  io.to(room.id).emit('stateUpdate', serializeState(room));
 }
 
-// ─── Socket.io ────────────────────────────────────────────────────────────────
-io.on('connection', socket => {
-  let currentRoom = null;
-  let playerName  = null;
+// ─── SOCKETS ─────────────────────────────────────────────────────────────────
+io.on('connection',sock=>{
+  let room=null,name=null;
 
-  socket.on('join', ({ room: roomId, player }) => {
-    const name = (player || '').toLowerCase().trim();
-
-    if (name !== 'rizwan' && name !== 'anha') {
-      socket.emit('rejected', { message: '🔒 This game is private — only Rizwan and Anha can play.' });
-      return;
-    }
-
-    if (!rooms[roomId]) rooms[roomId] = createRoom(roomId);
-    const rm = rooms[roomId];
-
-    currentRoom = roomId;
-    playerName  = name;
-    rm.players[socket.id] = name;
-    rm.playerNames.add(name);
-
-    socket.join(roomId);
-    socket.emit('joined', { playerName: name });
-    socket.emit('stateUpdate', serializeState(rm));
-
-    // Notify room
-    io.to(roomId).emit('playerJoined', {
-      name,
-      players: [...rm.playerNames]
-    });
+  sock.on('join',({r,p})=>{
+    const n=(p||'').toLowerCase().trim();
+    if(n!=='rizwan'&&n!=='anha'){ sock.emit('rejected','🔒 Private game — only Rizwan and Anha can play.'); return; }
+    if(!rooms[r]) rooms[r]=mkRoom(r);
+    const rm=rooms[r]; room=r; name=n;
+    rm.players[sock.id]=n; rm.names.add(n);
+    sock.join(r);
+    sock.emit('you',n);
+    sock.emit('S',serial(rm));
+    io.to(r).emit('joined',{n,all:[...rm.names]});
   });
 
-  socket.on('rotate', ({ direction }) => {
-    if (!currentRoom || !rooms[currentRoom]) return;
-    const rm = rooms[currentRoom];
-    if (rm.settling || rm.turn !== playerName || rm.matchOver) return;
-
-    const delta = direction === 'left' ? -0.4 : 0.4;
-    rm.currentShape.rotation = (rm.currentShape.rotation + delta) % (Math.PI * 2);
-    io.to(currentRoom).emit('stateUpdate', serializeState(rm));
+  sock.on('move',dir=>{
+    if(!room||!rooms[room]) return;
+    const rm=rooms[room];
+    if(rm.settling||rm.turn!==name||rm.matchOver||!rm.active) return;
+    const d=dir==='L'?-MOVE_D:MOVE_D;
+    rm.shape.x=clampX(rm.shape.x+d, ROUNDS[rm.round].pw);
+    sock.emit('S',serial(rm));           // only emit to mover for instant feedback
+    sock.to(room).emit('S',serial(rm));  // opponent sees it too
   });
 
-  socket.on('drop', () => {
-    if (!currentRoom || !rooms[currentRoom]) return;
-    const rm = rooms[currentRoom];
-    if (rm.settling || rm.turn !== playerName || rm.matchOver || !rm.roundActive) return;
-
-    dropShape(rm);
+  sock.on('rot',dir=>{
+    if(!room||!rooms[room]) return;
+    const rm=rooms[room];
+    if(rm.settling||rm.turn!==name||rm.matchOver) return;
+    rm.shape.rot=(rm.shape.rot+(dir==='L'?-0.4:0.4))%(Math.PI*2);
+    io.to(room).emit('S',serial(rm));
   });
 
-  socket.on('chat', ({ message }) => {
-    if (!currentRoom || !playerName || !message) return;
-    const msg = {
-      sender: playerName,
-      text: message.slice(0, 200),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    if (rooms[currentRoom]) rooms[currentRoom].chatMessages.push(msg);
-    io.to(currentRoom).emit('chat', msg);
+  sock.on('drop',()=>{
+    if(!room||!rooms[room]) return;
+    const rm=rooms[room];
+    if(rm.settling||rm.turn!==name||rm.matchOver||!rm.active) return;
+    drop(rm);
   });
 
-  socket.on('playAgain', () => {
-    if (!currentRoom || !rooms[currentRoom]) return;
-    const rm = rooms[currentRoom];
-    if (!rm.matchOver) return;
-
-    rm.scores  = { rizwan: 0, anha: 0 };
-    rm.round   = 0;
-    rm.winner  = null;
-    rm.matchOver = false;
-    initRound(rm);
-    io.to(currentRoom).emit('stateUpdate', serializeState(rm));
+  sock.on('chat',msg=>{
+    if(!room||!name) return;
+    const m={from:name,text:(msg||'').slice(0,200),t:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})};
+    io.to(room).emit('chat',m);
   });
 
-  socket.on('disconnect', () => {
-    if (currentRoom && rooms[currentRoom]) {
-      const rm = rooms[currentRoom];
-      delete rm.players[socket.id];
-      // Keep room alive for reconnection; clean up if completely empty
-      if (Object.keys(rm.players).length === 0) {
-        setTimeout(() => {
-          if (rooms[currentRoom] && Object.keys(rooms[currentRoom].players).length === 0) {
-            delete rooms[currentRoom];
-          }
-        }, 60000);
-      }
-    }
+  sock.on('again',()=>{
+    if(!room||!rooms[room]) return;
+    const rm=rooms[room];
+    if(!rm.matchOver) return;
+    rm.scores={rizwan:0,anha:0}; rm.round=0; rm.winner=null; rm.matchOver=false;
+    startRound(rm); io.to(room).emit('S',serial(rm));
+  });
+
+  sock.on('disconnect',()=>{
+    if(room&&rooms[room]){ delete rooms[room].players[sock.id];
+      if(!Object.keys(rooms[room].players).length) setTimeout(()=>{ if(rooms[room]&&!Object.keys(rooms[room].players).length) delete rooms[room]; },60000); }
   });
 });
 
-server.listen(PORT, () => console.log(`🎮 Tower game server on port ${PORT}`));
+server.listen(PORT,()=>console.log('Tower :'+PORT));

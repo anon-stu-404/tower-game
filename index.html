@@ -2,663 +2,457 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
 <title>Tower Stack · Rizwan & Anha</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg: #0a0a14;
-    --surface: rgba(255,255,255,0.04);
-    --border: rgba(255,255,255,0.08);
-    --accent1: #7c6fef;
-    --accent2: #ee6fae;
-    --text: #e8e6ff;
-    --muted: rgba(232,230,255,0.45);
-    --rizwan: #7c6fef;
-    --anha: #ee6fae;
-    --glow1: rgba(124,111,239,0.25);
-    --glow2: rgba(238,111,174,0.25);
-    --settle: #fbbf24;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
-  body{font-family:'Syne',sans-serif;color:var(--text);display:flex;flex-direction:column}
+:root{
+  --bg:#080810;--s:rgba(255,255,255,0.04);--b:rgba(255,255,255,0.07);
+  --r:#7c6fef;--a:#ee6fae;--tx:#e8e4ff;--mu:rgba(232,228,255,0.42);
+  --ye:#fbbf24;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);touch-action:manipulation}
+body{font-family:'Syne',sans-serif;color:var(--tx);display:flex;flex-direction:column}
 
-  /* ─── Starfield background ─── */
-  #stars{position:fixed;inset:0;z-index:0;pointer-events:none}
-  .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate}
-  @keyframes twinkle{from{opacity:0.05}to{opacity:var(--op,0.6)}}
+/* Stars */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.st{position:absolute;border-radius:50%;background:#fff}
 
-  /* ─── Layout ─── */
-  #app{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;padding:10px;gap:8px}
+/* Layout */
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100dvh;padding:7px;gap:5px}
 
-  /* ─── Header ─── */
-  #header{
-    display:flex;align-items:center;justify-content:space-between;
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:16px;padding:10px 18px;backdrop-filter:blur(20px);
-    gap:12px;flex-shrink:0
-  }
-  #logo{font-size:1.05rem;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
-  #logo span:first-child{color:var(--rizwan)}
-  #logo span:last-child{color:var(--anha)}
-  #logo .vs{color:var(--muted);font-weight:400;margin:0 6px}
-  #round-badge{
-    background:rgba(255,255,255,0.06);border:1px solid var(--border);
-    border-radius:8px;padding:4px 12px;font-family:'DM Mono',monospace;
-    font-size:0.75rem;color:var(--muted);white-space:nowrap
-  }
-  #scores{display:flex;gap:16px;align-items:center;flex-shrink:0}
-  .score-block{text-align:center}
-  .score-name{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0.6}
-  .score-num{font-size:1.6rem;font-weight:800;line-height:1}
-  .score-block.rizwan .score-num{color:var(--rizwan)}
-  .score-block.anha .score-num{color:var(--anha)}
-  #chat-btn{
-    background:var(--surface);border:1px solid var(--border);border-radius:10px;
-    padding:7px 14px;cursor:pointer;font-family:'Syne',sans-serif;font-size:0.8rem;
-    color:var(--text);transition:all .2s;white-space:nowrap;flex-shrink:0
-  }
-  #chat-btn:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.15)}
-  #chat-btn.has-new{border-color:var(--accent2);color:var(--accent2)}
+/* Header */
+#hdr{display:flex;align-items:center;gap:10px;background:var(--s);border:1px solid var(--b);border-radius:12px;padding:7px 14px;flex-shrink:0}
+#logo{font-size:.95rem;font-weight:800;white-space:nowrap}
+#logo .r{color:var(--r)} #logo .a{color:var(--a)} #logo .vs{color:var(--mu);font-weight:700;margin:0 5px}
+#rbadge{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--mu);background:rgba(255,255,255,0.04);border:1px solid var(--b);border-radius:6px;padding:2px 9px;white-space:nowrap;margin-right:auto}
+#sc{display:flex;gap:12px;align-items:center;flex-shrink:0}
+.sb{text-align:center}
+.sn{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.5}
+.sv{font-size:1.45rem;font-weight:800;line-height:1}
+.sb.r .sv{color:var(--r)} .sb.a .sv{color:var(--a)}
+#chatbtn{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:'Syne',sans-serif;font-size:.75rem;color:var(--tx);transition:all .15s;white-space:nowrap;flex-shrink:0}
+#chatbtn:hover{background:rgba(255,255,255,0.08)}
+#chatbtn.ping{border-color:var(--a);color:var(--a)}
 
-  /* ─── Main area ─── */
-  #main{flex:1;display:flex;gap:8px;min-height:0}
+/* Main */
+#main{flex:1;display:flex;gap:7px;min-height:0}
+#ga{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0;min-height:0}
 
-  /* ─── Game area ─── */
-  #game-area{
-    flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0
-  }
+/* Turn bar */
+#tb{background:var(--s);border:1px solid var(--b);border-radius:9px;padding:6px 14px;text-align:center;flex-shrink:0;font-size:.8rem;font-weight:700;transition:border-color .25s}
+#tb.rt{border-color:rgba(124,111,239,.45)}
+#tb.at{border-color:rgba(238,111,174,.45)}
+#tb.se{border-color:rgba(251,191,36,.35)}
 
-  /* ─── Turn indicator ─── */
-  #turn-bar{
-    background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    padding:8px 18px;backdrop-filter:blur(20px);text-align:center;flex-shrink:0;
-    font-size:0.85rem;position:relative;overflow:hidden;transition:all .3s
-  }
-  #turn-bar::before{
-    content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s;
-    background:linear-gradient(90deg,var(--glow1),var(--glow2))
-  }
-  #turn-bar.rizwan-turn::before{opacity:1;background:linear-gradient(90deg,var(--glow1),transparent)}
-  #turn-bar.anha-turn::before{opacity:1;background:linear-gradient(90deg,transparent,var(--glow2))}
-  #turn-bar.settling::before{opacity:1;background:rgba(251,191,36,0.1)}
-  #turn-label{position:relative;font-weight:700;font-size:0.9rem}
+/* Canvas */
+#cw{flex:1;position:relative;background:var(--s);border:1px solid var(--b);border-radius:12px;overflow:hidden;min-height:0;cursor:default}
+canvas{display:block;width:100%;height:100%}
 
-  /* ─── Canvas wrapper ─── */
-  #canvas-wrap{
-    flex:1;position:relative;background:var(--surface);
-    border:1px solid var(--border);border-radius:16px;overflow:hidden;
-    backdrop-filter:blur(20px);min-height:0
-  }
-  #gameCanvas{display:block;width:100%;height:100%}
+/* Controls */
+#ctrl{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.crow{display:flex;gap:4px;justify-content:center}
+.btn{background:var(--s);border:1px solid var(--b);border-radius:9px;color:var(--tx);font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:background .12s,transform .1s;padding:9px 0;font-size:.85rem;user-select:none;-webkit-tap-highlight-color:transparent}
+.btn:disabled{opacity:.22;cursor:not-allowed;pointer-events:none}
+.btn:not(:disabled):active{transform:scale(.94);background:rgba(255,255,255,0.1)}
+.mbtn{min-width:96px;font-size:.95rem}
+.rbtn{min-width:74px;font-size:.8rem}
+#bdrop{background:linear-gradient(135deg,var(--r),var(--a));border:none;min-width:110px;font-size:.95rem;box-shadow:0 2px 14px rgba(124,111,239,.35)}
+#bdrop:not(:disabled):active{filter:brightness(1.15)}
 
-  /* ─── Controls ─── */
-  #controls{
-    display:flex;gap:8px;align-items:center;justify-content:center;flex-shrink:0
-  }
-  .ctrl-btn{
-    background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    color:var(--text);font-family:'Syne',sans-serif;font-weight:700;
-    cursor:pointer;transition:all .2s;padding:10px 20px;font-size:0.9rem;
-    backdrop-filter:blur(20px)
-  }
-  .ctrl-btn:disabled{opacity:0.3;cursor:not-allowed}
-  .ctrl-btn:not(:disabled):hover{background:rgba(255,255,255,0.09);transform:translateY(-1px)}
-  .ctrl-btn:not(:disabled):active{transform:translateY(0)}
-  #btn-rotate-left::before{content:'↺ '}
-  #btn-rotate-right::before{content:'↻ '}
-  #btn-drop{
-    background:linear-gradient(135deg,var(--accent1),var(--accent2));
-    border:none;padding:10px 36px;font-size:1rem;
-    box-shadow:0 4px 24px rgba(124,111,239,0.3)
-  }
-  #btn-drop:not(:disabled):hover{box-shadow:0 6px 30px rgba(124,111,239,0.5);filter:brightness(1.1)}
-  #shape-preview-label{
-    font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);
-    text-align:center;flex-shrink:0;padding:2px 0
-  }
+/* Pos indicator */
+#piw{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin:0 6px;flex-shrink:0;position:relative}
+#pi{position:absolute;top:-5px;width:9px;height:13px;background:var(--r);border-radius:3px;transform:translateX(-50%);transition:left .08s linear}
 
-  /* ─── Overlay (match over, waiting) ─── */
-  #overlay{
-    display:none;position:absolute;inset:0;background:rgba(10,10,20,0.82);
-    backdrop-filter:blur(12px);border-radius:16px;
-    flex-direction:column;align-items:center;justify-content:center;
-    gap:20px;z-index:100
-  }
-  #overlay.visible{display:flex}
-  #overlay-title{font-size:2rem;font-weight:800;text-align:center;line-height:1.2}
-  #overlay-sub{font-size:0.95rem;color:var(--muted);text-align:center}
-  #btn-play-again{
-    background:linear-gradient(135deg,var(--accent1),var(--accent2));
-    border:none;border-radius:14px;padding:12px 40px;
-    font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
-    color:#fff;cursor:pointer;transition:all .2s;
-    box-shadow:0 4px 24px rgba(124,111,239,0.4)
-  }
-  #btn-play-again:hover{filter:brightness(1.15);transform:translateY(-2px)}
+/* Overlays */
+.ov{display:none;position:absolute;inset:0;border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:50}
+.ov.show{display:flex}
+#wov{background:rgba(5,5,14,.75);backdrop-filter:blur(8px)}
+#gov{background:rgba(5,5,14,.88);backdrop-filter:blur(14px)}
+#gov-title{font-size:1.8rem;font-weight:800;text-align:center}
+#gov-sub{font-size:.88rem;color:var(--mu);text-align:center}
+#bagain{background:linear-gradient(135deg,var(--r),var(--a));border:none;border-radius:11px;padding:10px 36px;font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 3px 18px rgba(124,111,239,.4);transition:filter .15s,transform .15s}
+#bagain:hover{filter:brightness(1.12);transform:translateY(-2px)}
+.spin{width:34px;height:34px;border:3px solid var(--b);border-top-color:var(--r);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-  /* ─── Waiting screen ─── */
-  #waiting{
-    display:none;position:absolute;inset:0;background:rgba(10,10,20,0.7);
-    backdrop-filter:blur(8px);border-radius:16px;
-    flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:50
-  }
-  #waiting.visible{display:flex}
-  .spinner{
-    width:40px;height:40px;border:3px solid var(--border);
-    border-top-color:var(--accent1);border-radius:50%;
-    animation:spin 0.9s linear infinite
-  }
-  @keyframes spin{to{transform:rotate(360deg)}}
-  #waiting-msg{font-size:0.9rem;color:var(--muted)}
+/* Chat */
+#cpanel{width:264px;flex-shrink:0;display:none;flex-direction:column;background:rgba(8,8,18,.98);border:1px solid var(--b);border-radius:12px;overflow:hidden}
+#cpanel.show{display:flex}
+#chdr{padding:10px 14px;border-bottom:1px solid var(--b);font-weight:700;font-size:.8rem;display:flex;justify-content:space-between;align-items:center}
+#cclose{background:none;border:none;color:var(--mu);cursor:pointer;font-size:.9rem;padding:1px 5px;border-radius:5px}
+#cclose:hover{background:rgba(255,255,255,0.06);color:var(--tx)}
+#cmsgs{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:var(--b) transparent;min-height:0}
+.cm{font-size:.74rem;line-height:1.45}
+.cm .who{font-weight:700;margin-right:4px}
+.cm .who.rizwan{color:var(--r)} .cm .who.anha{color:var(--a)}
+.cm .wt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--mu);margin-left:3px}
+#cform{display:flex;gap:4px;padding:8px;border-top:1px solid var(--b)}
+#cinput{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--b);border-radius:7px;padding:6px 8px;color:var(--tx);font-family:'Syne',sans-serif;font-size:.74rem;outline:none}
+#cinput:focus{border-color:rgba(124,111,239,.5)}
+#csend{background:var(--r);border:none;border-radius:7px;padding:6px 11px;color:#fff;cursor:pointer;font-family:'Syne',sans-serif;font-size:.74rem;font-weight:700}
+#csend:hover{filter:brightness(1.2)}
 
-  /* ─── Chat panel ─── */
-  #chat-panel{
-    width:280px;flex-shrink:0;display:none;flex-direction:column;
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:16px;backdrop-filter:blur(24px);overflow:hidden
-  }
-  #chat-panel.open{display:flex}
-  #chat-header{
-    padding:12px 16px;border-bottom:1px solid var(--border);
-    font-weight:700;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center
-  }
-  #chat-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:6px}
-  #chat-close:hover{background:rgba(255,255,255,0.07);color:var(--text)}
-  #chat-messages{
-    flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;
-    scrollbar-width:thin;scrollbar-color:var(--border) transparent;min-height:0
-  }
-  .chat-msg{font-size:0.78rem;line-height:1.4}
-  .chat-msg .sender{font-weight:700;margin-right:5px}
-  .chat-msg .sender.rizwan{color:var(--rizwan)}
-  .chat-msg .sender.anha{color:var(--anha)}
-  .chat-msg .time{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-left:4px}
-  #chat-form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--border)}
-  #chat-input{
-    flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);
-    border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;
-    font-size:0.78rem;outline:none
-  }
-  #chat-input:focus{border-color:rgba(124,111,239,0.5)}
-  #chat-send{
-    background:var(--accent1);border:none;border-radius:8px;padding:7px 13px;
-    color:#fff;cursor:pointer;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;
-    transition:filter .2s
-  }
-  #chat-send:hover{filter:brightness(1.2)}
+/* Toast */
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(50px);background:rgba(18,18,32,.97);border:1px solid var(--b);border-radius:9px;padding:8px 18px;font-size:.78rem;color:var(--tx);transition:transform .28s cubic-bezier(.175,.885,.32,1.275);z-index:999;pointer-events:none;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0)}
 
-  /* ─── Toast ─── */
-  #toast{
-    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
-    background:rgba(30,30,50,0.95);border:1px solid var(--border);border-radius:12px;
-    padding:10px 22px;font-size:0.82rem;color:var(--text);backdrop-filter:blur(20px);
-    transition:transform .35s cubic-bezier(.175,.885,.32,1.275);z-index:999;pointer-events:none
-  }
-  #toast.show{transform:translateX(-50%) translateY(0)}
+/* Rejected */
+#rej{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#rej.show{display:flex}
+#rej-icon{font-size:3rem}
+#rej-msg{font-size:.95rem;color:var(--mu);text-align:center;max-width:280px;line-height:1.55}
 
-  /* ─── Rejected screen ─── */
-  #rejected{
-    display:none;position:fixed;inset:0;background:var(--bg);z-index:999;
-    flex-direction:column;align-items:center;justify-content:center;gap:16px
-  }
-  #rejected.visible{display:flex}
-  #rejected-icon{font-size:4rem}
-  #rejected-msg{font-size:1.1rem;color:var(--muted);text-align:center;max-width:320px;line-height:1.5}
-
-  @media(max-width:600px){
-    #chat-panel{position:fixed;bottom:0;right:0;top:0;width:100%;border-radius:0;z-index:200}
-    #scores{gap:10px}
-    .score-num{font-size:1.3rem}
-    #btn-drop{padding:10px 24px}
-  }
+@media(max-width:580px){
+  #cpanel{position:fixed;inset:0;width:100%;border-radius:0;z-index:200}
+  .mbtn{min-width:76px}
+}
 </style>
 </head>
 <body>
+<div id="bg"></div>
+<div id="rej"><div id="rej-icon">🔒</div><div id="rej-msg"></div></div>
 
-<!-- Stars background -->
-<div id="stars"></div>
-
-<!-- Rejected screen -->
-<div id="rejected">
-  <div id="rejected-icon">🔒</div>
-  <div id="rejected-msg"></div>
-</div>
-
-<!-- App -->
 <div id="app">
-  <!-- Header -->
-  <div id="header">
-    <div id="logo">
-      <span>Rizwan</span><span class="vs">vs</span><span>Anha</span>
+  <div id="hdr">
+    <div id="logo"><span class="r">Rizwan</span><span class="vs">vs</span><span class="a">Anha</span></div>
+    <div id="rbadge">Round 1/3</div>
+    <div id="sc">
+      <div class="sb r"><div class="sn">Rizwan</div><div class="sv" id="sr">0</div></div>
+      <div style="color:var(--mu);font-size:.9rem">·</div>
+      <div class="sb a"><div class="sn">Anha</div><div class="sv" id="sa">0</div></div>
     </div>
-    <div id="round-badge">Round 1 / 3</div>
-    <div id="scores">
-      <div class="score-block rizwan">
-        <div class="score-name">Rizwan</div>
-        <div class="score-num" id="score-rizwan">0</div>
-      </div>
-      <div style="color:var(--muted);font-size:1rem">·</div>
-      <div class="score-block anha">
-        <div class="score-name">Anha</div>
-        <div class="score-num" id="score-anha">0</div>
-      </div>
-    </div>
-    <button id="chat-btn">💬 Chat</button>
+    <button id="chatbtn">💬 Chat</button>
   </div>
 
-  <!-- Main -->
   <div id="main">
-    <!-- Game area -->
-    <div id="game-area">
-      <div id="turn-bar"><span id="turn-label">Connecting…</span></div>
-      <div id="shape-preview-label">Current shape: —</div>
-      <div id="canvas-wrap" style="position:relative">
-        <canvas id="gameCanvas"></canvas>
-        <!-- Overlay for match result -->
-        <div id="overlay">
-          <div id="overlay-title"></div>
-          <div id="overlay-sub"></div>
-          <button id="btn-play-again">Play Again</button>
+    <div id="ga">
+      <div id="tb">Connecting…</div>
+      <div id="piw"><div id="pi" style="left:50%"></div></div>
+      <div id="cw">
+        <canvas id="cv"></canvas>
+        <div class="ov" id="wov">
+          <div class="spin"></div>
+          <div id="wmsg" style="font-size:.85rem;color:var(--mu)">Waiting for both players…</div>
         </div>
-        <!-- Waiting for opponent -->
-        <div id="waiting">
-          <div class="spinner"></div>
-          <div id="waiting-msg">Waiting for both players…</div>
+        <div class="ov" id="gov">
+          <div id="gov-title"></div>
+          <div id="gov-sub"></div>
+          <button id="bagain">Play Again</button>
         </div>
       </div>
-      <div id="controls">
-        <button class="ctrl-btn" id="btn-rotate-left">Rotate</button>
-        <button class="ctrl-btn" id="btn-drop">DROP</button>
-        <button class="ctrl-btn" id="btn-rotate-right">Rotate</button>
+      <div id="ctrl">
+        <div class="crow">
+          <button class="btn mbtn" id="bml" ontouchstart="startRepeat('L','move')" ontouchend="stopRepeat()" onmousedown="startRepeat('L','move')" onmouseup="stopRepeat()" onmouseleave="stopRepeat()">◀ Move</button>
+          <button class="btn mbtn" id="bmr" ontouchstart="startRepeat('R','move')" ontouchend="stopRepeat()" onmousedown="startRepeat('R','move')" onmouseup="stopRepeat()" onmouseleave="stopRepeat()">Move ▶</button>
+        </div>
+        <div class="crow">
+          <button class="btn rbtn" id="brl" ontouchstart="startRepeat('L','rot')" ontouchend="stopRepeat()" onmousedown="startRepeat('L','rot')" onmouseup="stopRepeat()" onmouseleave="stopRepeat()">↺ Rot</button>
+          <button class="btn" id="bdrop" id="bdrop">DROP</button>
+          <button class="btn rbtn" id="brr" ontouchstart="startRepeat('R','rot')" ontouchend="stopRepeat()" onmousedown="startRepeat('R','rot')" onmouseup="stopRepeat()" onmouseleave="stopRepeat()">Rot ↻</button>
+        </div>
       </div>
     </div>
 
-    <!-- Chat panel -->
-    <div id="chat-panel">
-      <div id="chat-header">
-        <span>💬 Chat</span>
-        <button id="chat-close">✕</button>
-      </div>
-      <div id="chat-messages"></div>
-      <div id="chat-form">
-        <input id="chat-input" placeholder="Message…" maxlength="200" autocomplete="off"/>
-        <button id="chat-send">Send</button>
+    <div id="cpanel">
+      <div id="chdr"><span>💬 Chat</span><button id="cclose">✕</button></div>
+      <div id="cmsgs"></div>
+      <div id="cform">
+        <input id="cinput" placeholder="Message…" maxlength="200" autocomplete="off"/>
+        <button id="csend">Send</button>
       </div>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// ─── Stars ────────────────────────────────────────────────────────────────────
+// ─── STARS ───────────────────────────────────────────────────────────────────
 (()=>{
-  const container=document.getElementById('stars');
-  for(let i=0;i<80;i++){
-    const s=document.createElement('div');
-    s.className='star';
-    const size=Math.random()*2+0.5;
-    s.style.cssText=`
-      left:${Math.random()*100}%;top:${Math.random()*100}%;
-      width:${size}px;height:${size}px;
-      --d:${(Math.random()*4+2).toFixed(1)}s;
-      --op:${(Math.random()*0.5+0.1).toFixed(2)};
-      animation-delay:${(Math.random()*4).toFixed(1)}s
-    `;
-    container.appendChild(s);
+  const bg=document.getElementById('bg');
+  for(let i=0;i<65;i++){
+    const d=document.createElement('div'); d.className='st';
+    const s=Math.random()*1.6+0.3;
+    const delay=(Math.random()*6).toFixed(1);
+    const dur=(Math.random()*5+2).toFixed(1);
+    const op=(Math.random()*.5+.05).toFixed(2);
+    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${op};animation:_tw ${dur}s ${delay}s ease-in-out infinite alternate`;
+    bg.appendChild(d);
   }
+  const st=document.createElement('style');
+  st.textContent='@keyframes _tw{from{opacity:.03}to{opacity:.55}}';
+  document.head.appendChild(st);
 })();
 
-// ─── URL params ───────────────────────────────────────────────────────────────
-const params   = new URLSearchParams(location.search);
-const ROOM     = params.get('room') || 'default';
-const PLAYER   = (params.get('player') || '').toLowerCase().trim();
+// ─── PARAMS ──────────────────────────────────────────────────────────────────
+const QS=new URLSearchParams(location.search);
+const ROOM=QS.get('room')||'default';
+const ME=(QS.get('player')||'').toLowerCase().trim();
 
-// ─── Canvas setup ─────────────────────────────────────────────────────────────
-const canvas  = document.getElementById('gameCanvas');
-const ctx     = canvas.getContext('2d');
-const wrap    = document.getElementById('canvas-wrap');
+// ─── CANVAS ──────────────────────────────────────────────────────────────────
+const cvs=document.getElementById('cv');
+const ctx=cvs.getContext('2d');
+const cwrap=document.getElementById('cw');
+let CW=0,CH=0,OX=0,OY=0;
+const SC=36; // pixels per metre
 
-const SCALE   = 38;   // pixels per metre
-let CANVAS_W  = 0;
-let CANVAS_H  = 0;
-let PLATFORM_CX = 0; // canvas X of world origin (0,0)
-let PLATFORM_CY = 0; // canvas Y of world Y=0 (platform top surface)
-
-function resizeCanvas() {
-  const rect = wrap.getBoundingClientRect();
-  canvas.width  = rect.width  * devicePixelRatio;
-  canvas.height = rect.height * devicePixelRatio;
-  canvas.style.width  = rect.width  + 'px';
-  canvas.style.height = rect.height + 'px';
-  CANVAS_W = canvas.width;
-  CANVAS_H = canvas.height;
-  PLATFORM_CX = CANVAS_W / 2;
-  PLATFORM_CY = CANVAS_H * 0.72;
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-  drawFrame();
+function resize(){
+  const r=cwrap.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  cvs.width=r.width*dpr; cvs.height=r.height*dpr;
+  cvs.style.width=r.width+'px'; cvs.style.height=r.height+'px';
+  CW=r.width; CH=r.height; OX=CW/2; OY=CH*0.70;
+  ctx.scale(dpr,dpr);
 }
-window.addEventListener('resize', resizeCanvas);
-setTimeout(resizeCanvas, 50);
+let rtimer; window.addEventListener('resize',()=>{ clearTimeout(rtimer); rtimer=setTimeout(()=>{ ctx.setTransform(1,0,0,1,0,0); resize(); },80); });
+setTimeout(resize,30);
 
-// world → canvas
-function wx(x){ return PLATFORM_CX/devicePixelRatio + x * SCALE; }
-function wy(y){ return PLATFORM_CY/devicePixelRatio - y * SCALE; }
+function wx(x){ return OX+x*SC; }
+function wy(y){ return OY-y*SC; }
 
-// ─── State ────────────────────────────────────────────────────────────────────
-let gameState  = null;
-let myName     = PLAYER;
-let connected  = false;
-let playersIn  = [];
-let previewRot = 0; // local rotation for ghost
-
-// ─── Socket ───────────────────────────────────────────────────────────────────
-const socket = io({ query: { room: ROOM, player: PLAYER } });
-
-socket.on('connect', ()=>{
-  socket.emit('join', { room: ROOM, player: PLAYER });
-});
-
-socket.on('rejected', ({ message }) => {
-  document.getElementById('rejected-msg').textContent = message;
-  document.getElementById('rejected').classList.add('visible');
-  document.getElementById('app').style.display = 'none';
-});
-
-socket.on('joined', ({ playerName }) => {
-  myName = playerName;
-  connected = true;
-});
-
-socket.on('playerJoined', ({ name, players }) => {
-  playersIn = players;
-  updateWaiting();
-  showToast(`${capitalize(name)} joined the room`);
-});
-
-socket.on('stateUpdate', state => {
-  gameState = state;
-  previewRot = state.currentShape ? state.currentShape.rotation : 0;
-  updateUI();
-  drawFrame();
-});
-
-socket.on('chat', msg => {
-  appendChatMsg(msg);
-  if (!document.getElementById('chat-panel').classList.contains('open')) {
-    document.getElementById('chat-btn').classList.add('has-new');
-  }
-});
-
-// ─── UI updates ───────────────────────────────────────────────────────────────
-function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
-function updateWaiting(){
-  const waiting = document.getElementById('waiting');
-  const bothIn  = playersIn.includes('rizwan') && playersIn.includes('anha');
-  if(bothIn || gameState) waiting.classList.remove('visible');
-  else waiting.classList.add('visible');
-}
-
-function updateUI(){
-  if(!gameState) return;
-  const s = gameState;
-  updateWaiting();
-
-  // Scores
-  document.getElementById('score-rizwan').textContent = s.scores.rizwan;
-  document.getElementById('score-anha').textContent   = s.scores.anha;
-
-  // Round badge
-  document.getElementById('round-badge').textContent = `Round ${s.round+1} / 3`;
-
-  // Turn bar
-  const turnBar   = document.getElementById('turn-bar');
-  const turnLabel = document.getElementById('turn-label');
-  turnBar.className = '';
-  if(s.settling){
-    turnBar.classList.add('settling');
-    turnLabel.innerHTML = `<span style="color:var(--settle)">⏳ Settling physics…</span>`;
-  } else if(s.matchOver){
-    turnLabel.innerHTML = `🏆 Match complete!`;
-  } else if(!s.roundActive){
-    turnLabel.innerHTML = `Round over — next round starting…`;
-  } else {
-    const isMyTurn = s.turn === myName;
-    turnBar.classList.add(s.turn+'-turn');
-    const nameHtml = `<span style="color:var(--${s.turn})">${capitalize(s.turn)}</span>`;
-    turnLabel.innerHTML = isMyTurn ? `✨ Your turn, ${nameHtml}!` : `${nameHtml}'s turn…`;
-  }
-
-  // Shape label
-  const shapeLbl = document.getElementById('shape-preview-label');
-  if(s.currentShape && s.roundActive && !s.matchOver){
-    shapeLbl.textContent = `Shape: ${s.currentShape.shapeName}  ·  Rotation: ${(previewRot*180/Math.PI).toFixed(0)}°`;
-  } else {
-    shapeLbl.textContent = '';
-  }
-
-  // Controls
-  const isMyTurn  = s.turn === myName;
-  const canAct    = isMyTurn && !s.settling && !s.matchOver && s.roundActive;
-  document.getElementById('btn-rotate-left').disabled  = !canAct;
-  document.getElementById('btn-rotate-right').disabled = !canAct;
-  document.getElementById('btn-drop').disabled         = !canAct;
-
-  // Match overlay
-  const overlay = document.getElementById('overlay');
-  if(s.matchOver && s.winner){
-    const isWinner = s.winner === myName;
-    const wName    = capitalize(s.winner);
-    document.getElementById('overlay-title').innerHTML =
-      `🏆 <span style="color:var(--${s.winner})">${wName}</span> wins the match!`;
-    document.getElementById('overlay-sub').textContent =
-      isWinner ? 'Congratulations! 🎉' : 'Better luck next time!';
-    overlay.classList.add('visible');
-  } else {
-    overlay.classList.remove('visible');
-  }
-}
-
-// ─── Drawing ──────────────────────────────────────────────────────────────────
-const SHAPE_DEFS = {
-  square:    { vertices:[[-0.5,-0.5],[0.5,-0.5],[0.5,0.5],[-0.5,0.5]], color:'#6ee7f7' },
-  rectangle: { vertices:[[-0.8,-0.35],[0.8,-0.35],[0.8,0.35],[-0.8,0.35]], color:'#a78bfa' },
-  triangle:  { vertices:[[0,-0.6],[0.55,0.5],[-0.55,0.5]], color:'#fbbf24' },
-  trapezoid: { vertices:[[-0.9,-0.35],[0.9,-0.35],[0.55,0.35],[-0.55,0.35]], color:'#34d399' },
-  hexagon: { vertices:(()=>{const p=[];for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;p.push([Math.cos(a)*0.6,Math.sin(a)*0.6])}return p})(), color:'#f472b6' },
-  lshape:    { vertices:[[-0.6,-0.6],[0.6,-0.6],[0.6,0.0],[0.1,0.0],[0.1,0.6],[-0.6,0.6]], color:'#fb923c' },
-  irregular: { vertices:[[-0.7,-0.4],[0.3,-0.6],[0.7,0.1],[0.2,0.6],[-0.5,0.5]], color:'#e879f9' }
+// ─── SHAPE DEFS (client) ─────────────────────────────────────────────────────
+const SD={
+  square:   {v:[[-0.40,-0.40],[0.40,-0.40],[0.40,0.40],[-0.40,0.40]],c:'#6ee7f7'},
+  rectangle:{v:[[-0.72,-0.24],[0.72,-0.24],[0.72,0.24],[-0.72,0.24]],c:'#a78bfa'},
+  tallrect: {v:[[-0.20,-0.70],[0.20,-0.70],[0.20,0.70],[-0.20,0.70]],c:'#67e8f9'},
+  triangle: {v:[[0,-0.60],[0.58,0.52],[-0.58,0.52]],c:'#fbbf24'},
+  thintri:  {v:[[0,-0.78],[0.22,0.78],[-0.22,0.78]],c:'#fde68a'},
+  trapezoid:{v:[[-0.78,-0.26],[0.78,-0.26],[0.42,0.26],[-0.42,0.26]],c:'#34d399'},
+  hexagon:  {v:(()=>{const p=[];for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;p.push([+(Math.cos(a)*.50).toFixed(4),+(Math.sin(a)*.50).toFixed(4)]);}return p;})(),c:'#f472b6'},
+  lshape:   {v:[[-0.52,-0.52],[0.52,-0.52],[0.52,0.0],[0.10,0.0],[0.10,0.52],[-0.52,0.52]],c:'#fb923c'},
+  irregular:{v:[[-0.62,-0.36],[0.26,-0.60],[0.66,0.10],[0.16,0.56],[-0.46,0.48]],c:'#e879f9'},
+  diamond:  {v:[[0,-0.62],[0.42,0],[0,0.62],[-0.42,0]],c:'#f9a8d4'},
+  wedge:    {v:[[-0.68,-0.32],[0.68,-0.32],[0.68,0.32],[-0.68,0.04]],c:'#86efac'},
+  zigzag:   {v:[[-0.60,-0.32],[-0.10,-0.32],[0.10,0.04],[0.60,0.04],[0.60,0.36],[0.10,0.36],[-0.10,0.0],[-0.60,0.0]],c:'#f87171'},
 };
 
-function rotateVert(v, angle){
-  const cos=Math.cos(angle), sin=Math.sin(angle);
-  return [v[0]*cos - v[1]*sin, v[0]*sin + v[1]*cos];
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let GS=null, myName=ME;
+// Local preview state — updated immediately on button press for zero-lag feel
+let prevX=0, prevRot=0;
+
+// ─── SOCKET ──────────────────────────────────────────────────────────────────
+const sock=io({transports:['websocket'],query:{room:ROOM,player:ME}});
+
+sock.on('connect',()=>sock.emit('join',{r:ROOM,p:ME}));
+
+sock.on('rejected',msg=>{
+  document.getElementById('rej-msg').textContent=msg;
+  document.getElementById('rej').classList.add('show');
+  document.getElementById('app').style.display='none';
+});
+
+sock.on('you',n=>{ myName=n; });
+
+sock.on('joined',({n,all})=>{
+  toast(`${cap(n)} joined`);
+  const both=all.includes('rizwan')&&all.includes('anha');
+  if(both||GS) document.getElementById('wov').classList.remove('show');
+});
+
+sock.on('S',state=>{
+  GS=state;
+  // Sync local preview to authoritative server state
+  if(state.shape){ prevX=state.shape.x; prevRot=state.shape.rot; }
+  updateUI(state);
+});
+
+sock.on('chat',m=>appendChat(m));
+
+// ─── REPEAT PRESS for hold-down behaviour ────────────────────────────────────
+let _ri=null;
+function startRepeat(dir, type){
+  if(!GS||GS.settling||GS.turn!==myName) return;
+  doAction(dir,type);
+  _ri=setInterval(()=>doAction(dir,type), 90);
+}
+function stopRepeat(){ clearInterval(_ri); _ri=null; }
+
+function doAction(dir,type){
+  if(!GS||GS.settling||GS.turn!==myName||GS.matchOver||!GS.active) return;
+  if(type==='move'){
+    const d=dir==='L'?-0.28:0.28;
+    prevX=Math.max(-GS.pw*0.50, Math.min(GS.pw*0.50, prevX+d));
+    sock.emit('move',dir);
+  } else {
+    prevRot+=(dir==='L'?-0.4:0.4);
+    sock.emit('rot',dir);
+  }
 }
 
-function drawPolygon(verts, fillStyle, strokeStyle, alpha=1){
-  if(!verts || verts.length < 2) return;
-  ctx.save();
-  ctx.globalAlpha = alpha;
+// Drop
+document.getElementById('bdrop').addEventListener('click',()=>{
+  if(!GS||GS.settling||GS.turn!==myName||!GS.active) return;
+  sock.emit('drop');
+});
+document.getElementById('bdrop').addEventListener('touchend',e=>{ e.preventDefault(); if(!GS||GS.settling||GS.turn!==myName||!GS.active) return; sock.emit('drop'); });
+
+// Play again
+document.getElementById('bagain').addEventListener('click',()=>{ sock.emit('again'); document.getElementById('gov').classList.remove('show'); });
+
+// Keyboard
+window.addEventListener('keydown',e=>{
+  if(!GS||GS.settling||GS.turn!==myName) return;
+  if(e.key==='ArrowLeft') { e.preventDefault(); doAction('L','move'); }
+  if(e.key==='ArrowRight'){ e.preventDefault(); doAction('R','move'); }
+  if(e.key==='z'||e.key==='Z'){ e.preventDefault(); doAction('L','rot'); }
+  if(e.key==='x'||e.key==='X'){ e.preventDefault(); doAction('R','rot'); }
+  if(e.key===' '){ e.preventDefault(); if(!GS.settling&&GS.turn===myName&&GS.active) sock.emit('drop'); }
+});
+
+// ─── UI UPDATE ───────────────────────────────────────────────────────────────
+function cap(s){ return s?s[0].toUpperCase()+s.slice(1):s; }
+
+function updateUI(s){
+  document.getElementById('wov').classList.remove('show');
+  document.getElementById('sr').textContent=s.scores.rizwan;
+  document.getElementById('sa').textContent=s.scores.anha;
+  document.getElementById('rbadge').textContent=`Round ${s.round+1}/3`;
+
+  const tb=document.getElementById('tb');
+  tb.className='';
+  if(s.settling){
+    tb.classList.add('se');
+    tb.innerHTML='<span style="color:var(--ye)">⏳ Settling…</span>';
+  } else if(s.matchOver){
+    tb.innerHTML='🏆 Match over!';
+  } else if(!s.active){
+    tb.innerHTML='Round ended — next starting…';
+  } else {
+    tb.classList.add(s.turn==='rizwan'?'rt':'at');
+    const col=`var(--${s.turn==='rizwan'?'r':'a'})`;
+    tb.innerHTML=s.turn===myName
+      ? `✨ Your turn, <span style="color:${col}">${cap(myName)}</span>!`
+      : `<span style="color:${col}">${cap(s.turn)}</span>'s turn…`;
+  }
+
+  // Position indicator
+  if(s.pw){
+    const pct=((prevX/(s.pw*0.50))+1)/2*100;
+    document.getElementById('pi').style.left=Math.max(2,Math.min(98,pct))+'%';
+  }
+
+  // Button states
+  const canAct=s.turn===myName&&!s.settling&&!s.matchOver&&s.active;
+  ['bml','bmr','brl','brr','bdrop'].forEach(id=>{ document.getElementById(id).disabled=!canAct; });
+
+  // Match over overlay
+  const gov=document.getElementById('gov');
+  if(s.matchOver&&s.winner){
+    const col=s.winner==='rizwan'?'var(--r)':'var(--a)';
+    document.getElementById('gov-title').innerHTML=`🏆 <span style="color:${col}">${cap(s.winner)}</span> wins!`;
+    document.getElementById('gov-sub').textContent=s.winner===myName?'Congratulations! 🎉':'Better luck next time!';
+    gov.classList.add('show');
+  } else gov.classList.remove('show');
+}
+
+// ─── DRAWING — 60fps, NO shadowBlur ──────────────────────────────────────────
+function rv(v,a){ const c=Math.cos(a),si=Math.sin(a); return [v[0]*c-v[1]*si, v[0]*si+v[1]*c]; }
+
+function poly(verts,fill,stroke,lw){
   ctx.beginPath();
-  ctx.moveTo(verts[0][0], verts[0][1]);
-  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i][0], verts[i][1]);
+  ctx.moveTo(verts[0][0],verts[0][1]);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i][0],verts[i][1]);
   ctx.closePath();
-  ctx.fillStyle = fillStyle;
-  ctx.fill();
-  if(strokeStyle){
-    ctx.strokeStyle = strokeStyle;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-  ctx.restore();
+  ctx.fillStyle=fill; ctx.fill();
+  if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=lw||1.5; ctx.stroke(); }
 }
 
-function worldVertsToCanvas(localVerts, pos, angle){
-  return localVerts.map(v => {
-    const r = rotateVert(v, angle);
-    return [wx(pos[0] + r[0]), wy(pos[1] + r[1])];
-  });
+function worldToCanvas(localV, pos, angle){
+  return localV.map(v=>{ const r=rv(v,angle); return [wx(pos[0]+r[0]), wy(pos[1]+r[1])]; });
 }
 
-function drawFrame(){
-  const W = canvas.width/devicePixelRatio;
-  const H = canvas.height/devicePixelRatio;
-  ctx.clearRect(0,0,W,H);
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+  if(!GS){ requestAnimationFrame(draw); return; }
+  const s=GS;
 
-  if(!gameState) return;
-  const s = gameState;
+  // Platform
+  const pw=s.pw, ph=0.3;
+  const px=wx(-pw/2), pyw=wy(ph/2), pwpx=pw*SC, phpx=ph*SC;
+  // Gradient fill
+  const grd=ctx.createLinearGradient(px,pyw,px+pwpx,pyw);
+  grd.addColorStop(0,'rgba(124,111,239,0.20)');
+  grd.addColorStop(1,'rgba(238,111,174,0.20)');
+  ctx.fillStyle=grd;
+  ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(px,pyw,pwpx,phpx,3); ctx.fill(); ctx.stroke();
+  // Bright top edge
+  ctx.strokeStyle='rgba(180,160,255,0.45)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(px,pyw); ctx.lineTo(px+pwpx,pyw); ctx.stroke();
 
-  // ── Platform ──
-  const pw   = s.platformWidth;
-  const ph   = 0.3;
-  const px   = wx(-pw/2);
-  const py   = wy(-ph/2);  // world y=0 is platform top; body y = -ph/2
-  const pwPx = pw * SCALE;
-  const phPx = ph * SCALE;
-
-  // Platform glow
-  const grad = ctx.createLinearGradient(px, py, px+pwPx, py+phPx);
-  grad.addColorStop(0,'rgba(124,111,239,0.25)');
-  grad.addColorStop(1,'rgba(238,111,174,0.25)');
-  ctx.save();
-  ctx.shadowColor = 'rgba(124,111,239,0.5)';
-  ctx.shadowBlur  = 20;
-  ctx.fillStyle   = grad;
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth   = 1;
-  ctx.beginPath();
-  ctx.roundRect(px, py, pwPx, phPx, 4);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  // ── Stacked bodies ──
-  s.bodies.forEach(b => {
-    const def    = SHAPE_DEFS[b.shapeName] || SHAPE_DEFS.square;
-    const verts  = b.vertices || def.vertices;
-    const cverts = worldVertsToCanvas(verts, b.position, b.angle);
-    const color  = b.color || def.color;
-
-    // Shadow / glow
+  // Stacked bodies
+  s.bodies.forEach(b=>{
+    const def=SD[b.name]||SD.square;
+    const vraw=b.v||def.v;
+    const cv=worldToCanvas(vraw, b.pos, b.angle);
+    const col=b.c||def.c;
     ctx.save();
-    ctx.shadowColor = color+'88';
-    ctx.shadowBlur  = 12;
-    drawPolygon(cverts, color, 'rgba(255,255,255,0.2)');
+    poly(cv, col, 'rgba(255,255,255,0.16)', 1.4);
+    // Simple top-edge highlight line (cheap depth)
+    ctx.globalAlpha=0.18; ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cv[0][0],cv[0][1]);
+    const len=Math.min(2,cv.length-1);
+    for(let i=1;i<=len;i++) ctx.lineTo(cv[i][0],cv[i][1]);
+    ctx.stroke();
     ctx.restore();
   });
 
-  // ── Ghost preview ──
-  if(s.currentShape && s.turn===myName && !s.settling && !s.matchOver && s.roundActive){
-    const def   = SHAPE_DEFS[s.currentShape.shapeName] || SHAPE_DEFS.square;
-    const verts = def.vertices;
-    const ghostY = 6.5; // world y for preview
-    const ghostX = 0;
-    const cverts = worldVertsToCanvas(verts, [ghostX, ghostY], previewRot);
-    drawPolygon(cverts, def.color+'66', def.color+'aa', 0.6);
-
-    // Arrow hinting drop
+  // Ghost preview — uses LOCAL prevX, prevRot for instant response
+  if(s.shape && s.turn===myName && !s.settling && !s.matchOver && s.active){
+    const def=SD[s.shape.name]||SD.square;
+    const gY=7.2;
+    const cv=worldToCanvas(def.v, [prevX, gY], prevRot);
     ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = def.color;
-    ctx.lineWidth   = 1.5;
-    ctx.setLineDash([4,4]);
-    const gx = wx(ghostX);
-    const gy = wy(ghostY);
-    ctx.beginPath();
-    ctx.moveTo(gx, gy + 30);
-    ctx.lineTo(gx, wy(0) - 15);
-    ctx.stroke();
+    ctx.globalAlpha=0.55;
+    poly(cv, def.c+'66', def.c+'bb', 1.2);
+    // Drop line
+    ctx.globalAlpha=0.18; ctx.strokeStyle=def.c; ctx.lineWidth=1.2;
+    ctx.setLineDash([4,5]);
+    ctx.beginPath(); ctx.moveTo(wx(prevX),wy(gY-0.8)); ctx.lineTo(wx(prevX),wy(0.2));
+    ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
   }
 
-  // ── Danger line ──
-  const dangerY = wy(-5);
-  if(dangerY < H){
-    ctx.save();
-    ctx.globalAlpha=0.15;
-    ctx.strokeStyle='#ef4444';
-    ctx.lineWidth=1;
-    ctx.setLineDash([6,6]);
-    ctx.beginPath();
-    ctx.moveTo(0, dangerY);
-    ctx.lineTo(W, dangerY);
-    ctx.stroke();
-    ctx.restore();
+  // Danger zone line
+  const dcy=wy(-7);
+  if(dcy>0&&dcy<CH){
+    ctx.save(); ctx.globalAlpha=0.10; ctx.strokeStyle='#ef4444'; ctx.lineWidth=1;
+    ctx.setLineDash([4,6]); ctx.beginPath(); ctx.moveTo(0,dcy); ctx.lineTo(CW,dcy); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
   }
 
-  requestAnimationFrame(drawFrame);
+  requestAnimationFrame(draw);
 }
-requestAnimationFrame(drawFrame);
+requestAnimationFrame(draw);
 
-// ─── Controls ─────────────────────────────────────────────────────────────────
-document.getElementById('btn-rotate-left').addEventListener('click', ()=>{
-  socket.emit('rotate', { direction:'left' });
-  previewRot -= 0.4;
+// ─── CHAT ────────────────────────────────────────────────────────────────────
+document.getElementById('chatbtn').addEventListener('click',()=>{
+  document.getElementById('cpanel').classList.toggle('show');
+  document.getElementById('chatbtn').classList.remove('ping');
 });
-document.getElementById('btn-rotate-right').addEventListener('click', ()=>{
-  socket.emit('rotate', { direction:'right' });
-  previewRot += 0.4;
-});
-document.getElementById('btn-drop').addEventListener('click', ()=>{
-  if(!gameState || gameState.settling || gameState.turn!==myName) return;
-  socket.emit('drop');
-});
-document.getElementById('btn-play-again').addEventListener('click', ()=>{
-  socket.emit('playAgain');
-  document.getElementById('overlay').classList.remove('visible');
-});
-
-// ─── Chat ─────────────────────────────────────────────────────────────────────
-const chatPanel = document.getElementById('chat-panel');
-const chatInput = document.getElementById('chat-input');
-const chatMsgs  = document.getElementById('chat-messages');
-
-document.getElementById('chat-btn').addEventListener('click', ()=>{
-  chatPanel.classList.toggle('open');
-  document.getElementById('chat-btn').classList.remove('has-new');
-});
-document.getElementById('chat-close').addEventListener('click', ()=>{
-  chatPanel.classList.remove('open');
-});
-document.getElementById('chat-send').addEventListener('click', sendChat);
-chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
-
+document.getElementById('cclose').addEventListener('click',()=>document.getElementById('cpanel').classList.remove('show'));
+document.getElementById('csend').addEventListener('click',sendChat);
+document.getElementById('cinput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendChat(); });
 function sendChat(){
-  const msg = chatInput.value.trim();
-  if(!msg) return;
-  socket.emit('chat', { message: msg });
-  chatInput.value='';
+  const v=document.getElementById('cinput').value.trim(); if(!v) return;
+  sock.emit('chat',v); document.getElementById('cinput').value='';
 }
-
-function appendChatMsg(msg){
-  const div = document.createElement('div');
-  div.className='chat-msg';
-  div.innerHTML=`<span class="sender ${msg.sender}">${capitalize(msg.sender)}</span><span class="text">${escapeHtml(msg.text)}</span><span class="time">${msg.time}</span>`;
-  chatMsgs.appendChild(div);
-  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+function appendChat(m){
+  const d=document.createElement('div'); d.className='cm';
+  d.innerHTML=`<span class="who ${m.from}">${cap(m.from)}</span><span>${esc(m.text)}</span><span class="wt">${m.t}</span>`;
+  const c=document.getElementById('cmsgs'); c.appendChild(d); c.scrollTop=c.scrollHeight;
+  if(!document.getElementById('cpanel').classList.contains('show')) document.getElementById('chatbtn').classList.add('ping');
 }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let _t; function toast(msg,d=2000){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(_t); _t=setTimeout(()=>el.classList.remove('show'),d); }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, dur=2500){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'), dur);
-}
-
-// ─── Waiting init ─────────────────────────────────────────────────────────────
-document.getElementById('waiting').classList.add('visible');
-document.getElementById('waiting-msg').textContent='Connecting…';
+// Boot
+document.getElementById('wov').classList.add('show');
 </script>
 </body>
 </html>
