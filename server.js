@@ -10,6 +10,10 @@ const server = http.createServer(app);
 const io     = new Server(server, { cors: { origin: '*' }, pingInterval: 10000, pingTimeout: 5000 });
 const PORT   = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname)));
+// Explicit fallback: serve index.html for all GET requests (SPA-style)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ─── SHAPES ──────────────────────────────────────────────────────────────────
 const SHAPES = {
